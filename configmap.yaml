@@ -1,0 +1,24 @@
+apiVersion: v1
+
+kind: ConfigMap
+
+
+metadata:
+
+ name: nginx-config
+
+ namespace: vprofile
+
+
+data:
+
+ default.conf: |
+
+  server {
+
+  listen 80;
+
+
+  location / {
+
+  proxy_pass http://backend:8080; } }

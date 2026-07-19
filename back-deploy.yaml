@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+
+
+metadata:
+
+ name: backend
+
+ namespace: vprofile
+
+
+
+spec:
+
+ replicas: 2
+
+
+ selector:
+
+  matchLabels:
+
+   app: backend
+
+
+ template:
+
+
+  metadata:
+
+   labels:
+
+    app: backend
+
+
+
+  spec:
+
+
+   containers:
+
+   - name: backend
+
+
+     image: esraaghazal/vprofile-back:1.0
+
+
+     ports:
+
+     - containerPort: 8080
