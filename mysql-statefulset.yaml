@@ -1,75 +1,68 @@
 apiVersion: apps/v1
-kind: StatefulSet
-
+kind: Deployment
 metadata:
-  name: mysql
+  name: db01
   namespace: vprofile
-
+  labels:
+    app: db01
+    tier: db
 spec:
-
-  serviceName: mysql
-
   replicas: 1
-
   selector:
     matchLabels:
-      app: mysql
-
-
+      app: db01
   template:
-
     metadata:
       labels:
-        app: mysql
-
-
+        app: db01
+        tier: db
     spec:
-
       containers:
-
-      - name: mysql
-
-        image:
-          esraaghazal/vprofile-db:1.0
-
-
-        ports:
-        - containerPort: 3306
-
-
-        env:
-
-        - name: MYSQL_ROOT_PASSWORD
-
-          valueFrom:
-            secretKeyRef:
-
-              name: mysql-secret
-
-              key: MYSQL_ROOT_PASSWORD
-
-
-        volumeMounts:
-
-        - name: mysql-data
-
-          mountPath: /var/lib/mysql
-
-
-
-  volumeClaimTemplates:
-
-  - metadata:
-
-      name: mysql-data
-
-    spec:
-
-      accessModes:
-      - ReadWriteOnce
-
-      resources:
-
-        requests:
-
-          storage: 5Gi
+        - name: db01
+          image: esraaghazal/vprofile-db:1.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: accounts
+          livenessProbe:
+            exec:
+              command:
+                ["mysqladmin", "ping", "-h", "localhost", "-pvprodbpass"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            exec:
+              command:
+                ["mysqladmin", "ping", "-h", "localhost", "-pvprodbpass"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 10
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: db-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db01
+  namespace: vprofile
+  labels:
+    app: db01
+spec:
+  selector:
+    app: db01
+  ports:
+    - port: 3306
+      targetPort: 3306

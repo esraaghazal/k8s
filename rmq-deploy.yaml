@@ -1,51 +1,48 @@
 apiVersion: apps/v1
-
 kind: Deployment
-
-
 metadata:
-
- name: rabbitmq
-
- namespace: vprofile
-
-
-
+  name: rmq01
+  namespace: vprofile
+  labels:
+    app: rmq01
+    tier: mq
 spec:
-
- replicas: 1
-
-
- selector:
-
-  matchLabels:
-
-   app: rabbitmq
-
-
- template:
-
-  metadata:
-
-   labels:
-
-    app: rabbitmq
-
-
-  spec:
-
-   containers:
-
-   - name: rabbitmq
-
-     image: rabbitmq:3-management
-
-
-     env:
-
-     - name: RABBITMQ_DEFAULT_USER
-       value: test
-
-
-     - name: RABBITMQ_DEFAULT_PASS
-       value: test
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rmq01
+  template:
+    metadata:
+      labels:
+        app: rmq01
+        tier: mq
+    spec:
+      containers:
+        - name: rmq01
+          image: rabbitmq:3-management
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: guest
+            - name: RABBITMQ_DEFAULT_PASS
+              value: guest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rmq01
+  namespace: vprofile
+  labels:
+    app: rmq01
+spec:
+  selector:
+    app: rmq01
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: management
+      port: 15672
+      targetPort: 15672
